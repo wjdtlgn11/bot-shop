@@ -73,8 +73,8 @@
 
         function toggleAdmin() {
             if (!isAdmin) {
-                const pw = prompt("관리자 비밀번호를 입력하세요 (기본: 1203):");
-                if (pw === "1234") {
+                const pw = prompt("관리자 비밀번호를 입력하세요 (기본: 1111):");
+                if (pw === "1203") {
                     isAdmin = true;
                     document.getElementById('adminPanel').style.display = 'block';
                     document.getElementById('adminBtn').innerText = "👑 관리자 작동중";
