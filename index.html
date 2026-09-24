@@ -7,20 +7,23 @@
     <style>
         body { background: #090d16; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 40px 20px; }
         .container { max-width: 900px; margin: 0 auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid #1e293b; padding-bottom: 20px; }
+        header { display: flex; justifyContent: space-between; alignItems: center; margin-bottom: 40px; border-bottom: 1px solid #1e293b; padding-bottom: 20px; }
         h1 { font-size: 24px; margin: 0; }
         p { color: #94a3b8; font-size: 14px; margin: 5px 0 0 0; }
         button { background: #1e293b; color: #fff; border: 1px solid #334155; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         button:hover { background: #334155; }
         .admin-panel { background: #111827; border: 1px solid #3b82f6; padding: 24px; border-radius: 12px; margin-bottom: 40px; display: none; }
         input, textarea { width: 100%; padding: 10px; background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 6px; box-sizing: border-box; margin-bottom: 12px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-        .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; display: flex; flexDirection: column; justify-content: space-between; }
+        .grid { display: grid; gridTemplateColumns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+        .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
         .card h3 { margin: 0 0 10px 0; font-size: 18px; }
         .card p { color: #94a3b8; font-size: 13px; line-height: 1.4; margin: 0 0 15px 0; }
         .price { font-size: 18px; font-weight: bold; color: #38bdf8; margin-bottom: 15px; }
-        .buy-btn { text-align: center; background: #5865F2; color: #fff; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: block; }
+        .buy-btn { text-align: center; background: #5865F2; color: #fff; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: block; margin-bottom: 8px; }
         .buy-btn:hover { background: #4752c4; }
+        .admin-btn-group { display: flex; gap: 6px; margin-top: 10px; }
+        .edit-btn { background: #3b82f6; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; flex: 1; }
+        .delete-btn { background: #ef4444; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; flex: 1; }
     </style>
 </head>
 <body>
@@ -35,10 +38,11 @@
 
         <div id="adminPanel" class="admin-panel">
             <h3 style="margin: 0 0 15px 0; color: #60a5fa;">🛠️ [관리자] 새로운 봇 등록하기</h3>
-            <input type="text" id="botTitle" placeholder="봇 이름 (예: 게임 전용 봇)">
-            <input type="text" id="botPrice" placeholder="가격 (예: 8,000원)">
-            <textarea id="botDesc" placeholder="봇 설명" style="height: 80px;"></textarea>
+            <input type="text" id="botTitle" placeholder="봇 이름 (예: 특수 봇)">
+            <input type="text" id="botPrice" placeholder="가격 (예: 35,000원)">
+            <textarea id="botDesc" placeholder="봇 설명 및 기능 요약" style="height: 80px;"></textarea>
             <button onclick="addBot()" style="background: #3b82f6; border: none;">스토어에 등록하기</button>
+            <button onclick="resetDefaultBots()" style="background: #374151; border: none; margin-top: 10px;">기본 봇 목록으로 초기화</button>
         </div>
 
         <h2>📦 판매 중인 봇 목록</h2>
@@ -49,15 +53,44 @@
 
     <script>
         let isAdmin = false;
-        let bots = [
-            { id: 1, title: '⚡ 디스코드 셀프봇 (소스코드 지원)', price: '35,000원', desc: '다양한 명령어와 유틸리티를 지원하는 고성능 셀프봇 소스코드 패키지.' },
-            { id: 2, title: '💥 디스코드 서버테러봇 (소스코드 지원)', price: '20,000원', desc: '서버테러 및 레이드 제어 기능, 채널/역할 일괄 생성/삭제 시스템.' }
+
+        // 요청하신 가격 반영된 기본 봇 데이터
+        const defaultBots = [
+            { 
+                id: 1, 
+                title: '⚡ 디스코드 셀프봇 (소스코드 지원)', 
+                price: '35,000원', 
+                desc: '명령어: !테러, !니트로폭격(ip), !도배, !사칭도배 [@유저] [할말], !가짜공지, !디엠, !역할폭격, !역할삭제, !채널도배, !벤폭격, !닉네임테러, !이모지테러, !서버정보변경, !서버정보, !유저정보 [@유저], !관리자검사, !스니핑, !채팅랭킹, !통계, !유저추적, !서버복사 등등' 
+            },
+            { 
+                id: 2, 
+                title: '💥 디스코드 서버테러봇 (소스코드 지원)', 
+                price: '20,000원', 
+                desc: '서버테러 및 대규모 레이드 제어 기능, 채널 및 역할 일괄 생성/삭제 시스템, 웹훅 및 스팸 메시지 폭격 시스템 등 강력한 서버 제어 기능을 지원합니다.' 
+            }
         ];
+
+        let bots = JSON.parse(localStorage.getItem('my_discord_bots')) || defaultBots;
+
+        function saveAndRender() {
+            localStorage.setItem('my_discord_bots', JSON.stringify(bots));
+            renderBots();
+        }
 
         function renderBots() {
             const grid = document.getElementById('botGrid');
             grid.innerHTML = '';
             bots.forEach(bot => {
+                let adminControls = '';
+                if (isAdmin) {
+                    adminControls = `
+                        <div class="admin-btn-group">
+                            <button class="edit-btn" onclick="editBot(${bot.id})">✏️ 수정</button>
+                            <button class="delete-btn" onclick="deleteBot(${bot.id})">🗑️ 삭제</button>
+                        </div>
+                    `;
+                }
+
                 grid.innerHTML += `
                     <div class="card">
                         <div>
@@ -65,7 +98,10 @@
                             <p>${bot.desc}</p>
                             <div class="price">${bot.price}</div>
                         </div>
-                        <a href="https://discord.com/users/1531164394874994813" target="_blank" class="buy-btn">💬 구매 및 문의하기</a>
+                        <div>
+                            <a href="https://discord.com/users/1531164394874994813" target="_blank" class="buy-btn">💬 구매 및 문의하기</a>
+                            ${adminControls}
+                        </div>
                     </div>
                 `;
             });
@@ -73,12 +109,13 @@
 
         function toggleAdmin() {
             if (!isAdmin) {
-                const pw = prompt("관리자 비밀번호를 입력하세요 (기본: 1111):");
+                const pw = prompt("관리자 비밀번호를 입력하세요:");
                 if (pw === "1203") {
                     isAdmin = true;
                     document.getElementById('adminPanel').style.display = 'block';
                     document.getElementById('adminBtn').innerText = "👑 관리자 작동중";
                     document.getElementById('adminBtn').style.background = "#10b981";
+                    renderBots();
                     alert("👑 관리자 모드가 활성화되었습니다!");
                 } else {
                     alert("❌ 비밀번호가 틀렸습니다.");
@@ -88,6 +125,7 @@
                 document.getElementById('adminPanel').style.display = 'none';
                 document.getElementById('adminBtn').innerText = "관리자 로그인";
                 document.getElementById('adminBtn').style.background = "#1e293b";
+                renderBots();
             }
         }
 
@@ -102,11 +140,53 @@
             }
 
             bots.unshift({ id: Date.now(), title, price, desc });
-            renderBots();
+            saveAndRender();
+            
             document.getElementById('botTitle').value = '';
             document.getElementById('botPrice').value = '';
             document.getElementById('botDesc').value = '';
             alert("성공적으로 등록되었습니다!");
+        }
+
+        function editBot(id) {
+            const bot = bots.find(b => b.id === id);
+            if (!bot) return;
+
+            const newTitle = prompt("새로운 봇 이름을 입력하세요:", bot.title);
+            if (newTitle === null) return; // 취소 누른 경우
+
+            const newPrice = prompt("새로운 가격을 입력하세요:", bot.price);
+            if (newPrice === null) return;
+
+            const newDesc = prompt("새로운 설명을 입력하세요:", bot.desc);
+            if (newDesc === null) return;
+
+            if (!newTitle.trim() || !newPrice.trim() || !newDesc.trim()) {
+                alert("빈 칸은 입력할 수 없습니다.");
+                return;
+            }
+
+            bot.title = newTitle;
+            bot.price = newPrice;
+            bot.desc = newDesc;
+
+            saveAndRender();
+            alert("수정되었습니다!");
+        }
+
+        function deleteBot(id) {
+            if(confirm("정말 이 상품을 삭제하시겠습니까?")) {
+                bots = bots.filter(bot => bot.id !== id);
+                saveAndRender();
+            }
+        }
+
+        function resetDefaultBots() {
+            if(confirm("기본 봇 목록으로 초기화하시겠습니까?")) {
+                bots = defaultBots;
+                saveAndRender();
+                alert("초기화되었습니다.");
+            }
         }
 
         renderBots();
